@@ -1,18 +1,25 @@
-import React, { useState } from "react";
+import axios from "axios";
+import React, { useState, useEffect } from "react";
 import { SearchBar } from "./components/SearchBar";
 import { ContactForm } from "./components/ContactForm";
 import { ErrorMessage } from "./components/ErrorMessage";
 import { ContactList } from "./components/ContactList";
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: "Arto Hellas", number: "12345678", id: 1 },
-  ]);
+  const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState(null);
   const [nextId, setNextId] = useState(2);
+
+  useEffect(() => {
+    console.log("effect");
+    axios.get("http://localhost:3001/persons").then((response) => {
+      console.log("promise fulfilled");
+      setPersons(response.data);
+    });
+  }, []);
 
   const handleNameChange = (event) => {
     setNewName(event.target.value);
