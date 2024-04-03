@@ -1,19 +1,34 @@
 import React from "react";
 
-export const ContactForm = ({
-  newName, newNumber, handleNameChange, handleNumberChange, addPerson,
-}) => {
-  return (
-    <form onSubmit={addPerson}>
-      <div>
-        Name: <input value={newName} onChange={handleNameChange} />
-      </div>
-      <div>
-        Number: <input value={newNumber} onChange={handleNumberChange} />
-      </div>
-      <div>
-        <button type="submit">add</button>
-      </div>
-    </form>
-  );
-};
+const ContactForm = ({
+  newName,
+  newNumber,
+  handleInputChange,
+  addOrUpdatePerson,
+}) => (
+  <form onSubmit={addOrUpdatePerson}>
+    <div>
+      Name:{" "}
+      <input
+        type="text"
+        name="name"
+        value={newName}
+        onChange={handleInputChange}
+      />
+    </div>
+    <div>
+      Number:{" "}
+      <input
+        type="text"
+        name="number"
+        value={newNumber}
+        onChange={handleInputChange}
+      />
+    </div>
+    <div>
+      <button type="submit">Add</button>
+    </div>
+  </form>
+);
+
+export default ContactForm;

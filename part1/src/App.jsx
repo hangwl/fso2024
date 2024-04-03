@@ -1,9 +1,10 @@
-import axios from "axios";
+// App.jsx
 import React, { useState, useEffect } from "react";
-import { SearchBar } from "./components/SearchBar";
-import { ContactForm } from "./components/ContactForm";
-import { ErrorMessage } from "./components/ErrorMessage";
-import { ContactList } from "./components/ContactList";
+import SearchBar from "./components/SearchBar";
+import ContactForm from "./components/ContactForm";
+import ErrorMessage from "./components/ErrorMessage";
+import ContactList from "./components/ContactList";
+import phonebookService from "./services/phonebookService";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -11,49 +12,72 @@ const App = () => {
   const [newNumber, setNewNumber] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState(null);
-  const [nextId, setNextId] = useState(2);
 
   useEffect(() => {
-    console.log("effect");
-    axios.get("http://localhost:3001/persons").then((response) => {
-      console.log("promise fulfilled");
-      setPersons(response.data);
+    phonebookService.getAll().then((initialPersons) => {
+      setPersons(initialPersons);
     });
   }, []);
 
-  const handleNameChange = (event) => {
-    setNewName(event.target.value);
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    if (name === "name") setNewName(value);
+    else if (name === "number") setNewNumber(value);
+    else if (name === "search") setSearchTerm(value);
   };
 
-  const handleNumberChange = (event) => {
-    setNewNumber(event.target.value);
-  };
-
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
-  };
-
-  const addPerson = (event) => {
+  const addOrUpdatePerson = (event) => {
     event.preventDefault();
 
-    const isNameExists = persons.some((person) => person.name === newName);
+    const existingPerson = persons.find((person) => person.name === newName);
 
-    if (isNameExists) {
-      setErrorMessage(`${newName} already exists in the phonebook.`);
-      return;
+    if (existingPerson) {
+      if (existingPerson.number === newNumber) {
+        setErrorMessage(`${newName} already exists in the phonebook.`);
+        return;
+      }
+
+      const confirmReplace = window.confirm(
+        `${newName} already exists in the phonebook. Do you want to replace the existing phone number?`
+      );
+
+      if (confirmReplace) {
+        const updatedPerson = { ...existingPerson, number: newNumber };
+
+        phonebookService
+          .update(existingPerson.id, updatedPerson)
+          .then((updatedPerson) => {
+            setPersons(
+              persons.map((person) =>
+                person.id === updatedPerson.id ? updatedPerson : person
+              )
+            );
+            setNewName("");
+            setNewNumber("");
+            setErrorMessage(null);
+          })
+          .catch((error) => {
+            console.error("Error updating contact:", error);
+          });
+      }
+    } else {
+      const personObject = {
+        name: newName,
+        number: newNumber,
+      };
+
+      phonebookService
+        .create(personObject)
+        .then((returnedPerson) => {
+          setPersons(persons.concat(returnedPerson));
+          setNewName("");
+          setNewNumber("");
+          setErrorMessage(null);
+        })
+        .catch((error) => {
+          console.error("Error adding new contact:", error);
+        });
     }
-
-    const personObject = {
-      name: newName,
-      number: newNumber,
-      id: nextId,
-    };
-
-    setPersons(persons.concat(personObject));
-    setNewName("");
-    setNewNumber("");
-    setErrorMessage(null);
-    setNextId(nextId + 1);
   };
 
   const filteredPersons = searchTerm
@@ -65,18 +89,17 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <SearchBar searchTerm={searchTerm} handleSearch={handleSearch} />
+      <SearchBar searchTerm={searchTerm} handleSearch={handleInputChange} />
       <h3>New Contact</h3>
       <ContactForm
         newName={newName}
         newNumber={newNumber}
-        handleNameChange={handleNameChange}
-        handleNumberChange={handleNumberChange}
-        addPerson={addPerson}
+        handleInputChange={handleInputChange}
+        addOrUpdatePerson={addOrUpdatePerson}
       />
       <ErrorMessage errorMessage={errorMessage} />
       <h3>Numbers</h3>
-      <ContactList filteredPersons={filteredPersons} />
+      <ContactList filteredPersons={filteredPersons} setPersons={setPersons} />
     </div>
   );
 };
