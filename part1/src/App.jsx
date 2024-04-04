@@ -1,10 +1,10 @@
-// App.jsx
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import SearchBar from "./components/SearchBar";
 import ContactForm from "./components/ContactForm";
 import ErrorMessage from "./components/ErrorMessage";
 import ContactList from "./components/ContactList";
 import phonebookService from "./services/phonebookService";
+import SuccessMessage from "./components/SuccessMessage";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -12,7 +12,9 @@ const App = () => {
   const [newNumber, setNewNumber] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState(null);
-
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [successPersonName, setSuccessPersonName] = useState("");
+    
   useEffect(() => {
     phonebookService.getAll().then((initialPersons) => {
       setPersons(initialPersons);
@@ -55,6 +57,8 @@ const App = () => {
             setNewName("");
             setNewNumber("");
             setErrorMessage(null);
+            setSuccessPersonName(newName);
+            setSuccessMessage("Contact updated successfully!");
           })
           .catch((error) => {
             console.error("Error updating contact:", error);
@@ -73,6 +77,8 @@ const App = () => {
           setNewName("");
           setNewNumber("");
           setErrorMessage(null);
+          setSuccessPersonName(newName);
+          setSuccessMessage("Contact added successfully!");
         })
         .catch((error) => {
           console.error("Error adding new contact:", error);
@@ -98,6 +104,10 @@ const App = () => {
         addOrUpdatePerson={addOrUpdatePerson}
       />
       <ErrorMessage errorMessage={errorMessage} />
+      <SuccessMessage
+        successMessage={successMessage}
+        successPersonName={successPersonName}
+      />
       <h3>Numbers</h3>
       <ContactList filteredPersons={filteredPersons} setPersons={setPersons} />
     </div>
