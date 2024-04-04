@@ -3,7 +3,13 @@ import React from "react";
 const SearchBar = ({ searchTerm, handleSearch }) => {
   return (
     <div>
-      Search: <input value={searchTerm} onChange={handleSearch} />
+      <input
+        type="text"
+        placeholder="Search..."
+        value={searchTerm}
+        onChange={handleSearch}
+        name="search"
+      />
     </div>
   );
 };
