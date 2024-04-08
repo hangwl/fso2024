@@ -52,6 +52,15 @@ const App = () => {
     }
   };
 
+  const handleShowClick = async (countryName) => {
+    try {
+      const countryData = await countryService.getCountryByName(countryName);
+      setSelectedCountry(countryData);
+    } catch (error) {
+      console.error("Error fetching country data:", error);
+    }
+  };
+
   return (
     <div>
       <h1>Countries</h1>
@@ -91,11 +100,18 @@ const App = () => {
       ) : (
         <div>
           <h2>Filtered Countries</h2>
-          <ul>
-            {filteredCountryNames.map((name, index) => (
-              <li key={index}>{name}</li>
-            ))}
-          </ul>
+          {filteredCountryNames.length <= 10 ? (
+            <ul className="country-list">
+              {filteredCountryNames.map((name, index) => (
+                <li key={index}>
+                  {name}
+                  <button onClick={() => handleShowClick(name)}>Show</button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>Too many matches, specify another filter</p>
+          )}
         </div>
       )}
     </div>
