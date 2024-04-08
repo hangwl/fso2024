@@ -1,75 +1,103 @@
-import React, { useState } from "react";
-import { SearchBar } from "./components/SearchBar";
-import { ContactForm } from "./components/ContactForm";
-import { ErrorMessage } from "./components/ErrorMessage";
-import { ContactList } from "./components/ContactList";
+import React, { useState, useEffect } from "react";
+import SearchBar from "./components/SearchBar";
+import countryService from "./services/countryService";
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: "Arto Hellas", number: "12345678", id: 1 },
-  ]);
-  const [newName, setNewName] = useState("");
-  const [newNumber, setNewNumber] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [nextId, setNextId] = useState(2);
+  const [countryNames, setCountryNames] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [filteredCountryNames, setFilteredCountryNames] = useState([]);
 
-  const handleNameChange = (event) => {
-    setNewName(event.target.value);
-  };
-
-  const handleNumberChange = (event) => {
-    setNewNumber(event.target.value);
-  };
-
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
-  };
-
-  const addPerson = (event) => {
-    event.preventDefault();
-
-    const isNameExists = persons.some((person) => person.name === newName);
-
-    if (isNameExists) {
-      setErrorMessage(`${newName} already exists in the phonebook.`);
-      return;
-    }
-
-    const personObject = {
-      name: newName,
-      number: newNumber,
-      id: nextId,
+  useEffect(() => {
+    const fetchCountryNames = async () => {
+      try {
+        const names = await countryService.getAllCountryNames();
+        setCountryNames(names);
+      } catch (error) {
+        console.error("Error fetching country names:", error);
+      }
     };
 
-    setPersons(persons.concat(personObject));
-    setNewName("");
-    setNewNumber("");
-    setErrorMessage(null);
-    setNextId(nextId + 1);
-  };
+    fetchCountryNames();
+  }, []);
 
-  const filteredPersons = searchTerm
-    ? persons.filter((person) =>
-        person.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : persons;
+  useEffect(() => {
+    const handleSearch = () => {
+      if (searchTerm.trim() !== "") {
+        const filteredNames = countryNames.filter((name) =>
+          name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setFilteredCountryNames(filteredNames);
+        if (filteredNames.length === 1) {
+          fetchCountryDetails(filteredNames[0]);
+        } else {
+          setSelectedCountry(null);
+        }
+      } else {
+        setFilteredCountryNames(countryNames);
+        setSelectedCountry(null);
+      }
+    };
+
+    handleSearch();
+  }, [searchTerm, countryNames]);
+
+  const fetchCountryDetails = async (name) => {
+    try {
+      const countryDetails = await countryService.getCountryByName(name);
+      setSelectedCountry(countryDetails);
+    } catch (error) {
+      console.error("Error fetching country details:", error);
+      setSelectedCountry(null);
+    }
+  };
 
   return (
     <div>
-      <h2>Phonebook</h2>
-      <SearchBar searchTerm={searchTerm} handleSearch={handleSearch} />
-      <h3>New Contact</h3>
-      <ContactForm
-        newName={newName}
-        newNumber={newNumber}
-        handleNameChange={handleNameChange}
-        handleNumberChange={handleNumberChange}
-        addPerson={addPerson}
-      />
-      <ErrorMessage errorMessage={errorMessage} />
-      <h3>Numbers</h3>
-      <ContactList filteredPersons={filteredPersons} />
+      <h1>Countries</h1>
+      <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      {selectedCountry ? (
+        <div>
+          <h2>{selectedCountry.name.common}</h2>
+          <p>Capital: {selectedCountry.capital[0]}</p>
+          <p>Area: {selectedCountry.area}</p>
+          <p>
+            <b>Languages</b>
+          </p>
+          <ul>
+            {Object.entries(selectedCountry.languages).map(
+              ([code, language]) => (
+                <li key={code}>{language}</li>
+              )
+            )}
+          </ul>
+          <div>
+            <h3>Flag:</h3>
+            {selectedCountry.flags.png ? (
+              <img
+                src={selectedCountry.flags.png}
+                alt={selectedCountry.flags.alt}
+              />
+            ) : (
+              selectedCountry.flags.svg && (
+                <img
+                  src={selectedCountry.flags.svg}
+                  alt={selectedCountry.flags.alt}
+                />
+              )
+            )}
+          </div>
+        </div>
+      ) : (
+        <div>
+          <h2>Filtered Countries</h2>
+          <ul>
+            {filteredCountryNames.map((name, index) => (
+              <li key={index}>{name}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

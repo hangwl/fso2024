@@ -1,9 +1,15 @@
 import React from "react";
 
-export const SearchBar = ({ searchTerm, handleSearch }) => {
+const SearchBar = ({ searchTerm, setSearchTerm }) => {
+  const handleChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
   return (
     <div>
-      Search: <input value={searchTerm} onChange={handleSearch} />
+      Search: <input value={searchTerm} onChange={handleChange} />
     </div>
   );
 };
+
+export default SearchBar;
