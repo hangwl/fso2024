@@ -1,31 +1,59 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import SearchBar from "./components/SearchBar";
 import ContactForm from "./components/ContactForm";
-import ErrorMessage from "./components/ErrorMessage";
+import Notification from "./components/Notification";
 import ContactList from "./components/ContactList";
 import phonebookService from "./services/phonebookService";
-import SuccessMessage from "./components/SuccessMessage";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
-  const [successPersonName, setSuccessPersonName] = useState("");
-    
+  const [notification, setNotification] = useState({ message: "", type: "" });
+
   useEffect(() => {
     phonebookService.getAll().then((initialPersons) => {
       setPersons(initialPersons);
     });
   }, []);
 
+  useEffect(() => {
+    let timeoutId = null;
+    let secondsLeft = 5;
+
+    if (notification.message !== "") {
+      timeoutId = setTimeout(() => {
+        setNotification({ message: "", type: "" });
+      }, 5000);
+
+      const intervalId = setInterval(() => {
+        console.log(`Timeout ${intervalId}: ${secondsLeft} seconds left`);
+        secondsLeft--;
+
+        if (secondsLeft === 0) {
+          clearInterval(intervalId);
+        }
+      }, 1000);
+
+      return () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        clearInterval(intervalId);
+      };
+    }
+  }, [notification]);
+
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     if (name === "name") setNewName(value);
     else if (name === "number") setNewNumber(value);
     else if (name === "search") setSearchTerm(value);
+  };
+
+  const showNotification = (message, type) => {
+    setNotification({ message, type });
   };
 
   const addOrUpdatePerson = (event) => {
@@ -35,7 +63,10 @@ const App = () => {
 
     if (existingPerson) {
       if (existingPerson.number === newNumber) {
-        setErrorMessage(`${newName} already exists in the phonebook.`);
+        showNotification(
+          `${newName} already exists in the phonebook.`,
+          "error"
+        );
         return;
       }
 
@@ -56,12 +87,14 @@ const App = () => {
             );
             setNewName("");
             setNewNumber("");
-            setErrorMessage(null);
-            setSuccessPersonName(newName);
-            setSuccessMessage("Contact updated successfully!");
+            showNotification("Contact updated successfully.", "success");
           })
           .catch((error) => {
             console.error("Error updating contact:", error);
+            showNotification(
+              "Error updating contact. Please try again.",
+              "error"
+            );
           });
       }
     } else {
@@ -76,12 +109,14 @@ const App = () => {
           setPersons(persons.concat(returnedPerson));
           setNewName("");
           setNewNumber("");
-          setErrorMessage(null);
-          setSuccessPersonName(newName);
-          setSuccessMessage("Contact added successfully!");
+          showNotification("Contact added successfully.", "success");
         })
         .catch((error) => {
           console.error("Error adding new contact:", error);
+          showNotification(
+            "Error adding new contact. Please try again.",
+            "error"
+          );
         });
     }
   };
@@ -103,11 +138,7 @@ const App = () => {
         handleInputChange={handleInputChange}
         addOrUpdatePerson={addOrUpdatePerson}
       />
-      <ErrorMessage errorMessage={errorMessage} />
-      <SuccessMessage
-        successMessage={successMessage}
-        successPersonName={successPersonName}
-      />
+      <Notification message={notification.message} type={notification.type} />
       <h3>Numbers</h3>
       <ContactList filteredPersons={filteredPersons} setPersons={setPersons} />
     </div>

@@ -1,9 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Notification from "./Notification"; // Import Notification component
 import phonebookService from "../services/phonebookService";
 
 const ContactList = ({ filteredPersons, setPersons }) => {
-  const [removeSuccessMessage, setRemoveSuccessMessage] = useState("");
-  const [removeErrorMessage, setRemoveErrorMessage] = useState("");
+  const [notification, setNotification] = useState({ message: "", type: "" });
+
+  useEffect(() => {
+    let timeoutId = null;
+    let secondsLeft = 5; // Move the declaration outside the if block
+
+    if (notification.message !== "") {
+      timeoutId = setInterval(() => {
+        console.log(`Timeout ${timeoutId}: ${secondsLeft} seconds left`);
+        secondsLeft--;
+
+        if (secondsLeft === 0) {
+          clearInterval(timeoutId);
+          setNotification({ message: "", type: "" });
+        }
+      }, 1000);
+
+      // Clean up the timeout when the component unmounts or when a new notification is set
+      return () => {
+        if (timeoutId) {
+          clearInterval(timeoutId);
+        }
+      };
+    }
+  }, [notification]); // Trigger effect whenever notification changes
 
   const handleDelete = (id, name) => {
     const personToDelete = filteredPersons.find((person) => person.id === id);
@@ -24,25 +48,18 @@ const ContactList = ({ filteredPersons, setPersons }) => {
           setPersons((prevPersons) =>
             prevPersons.filter((person) => person.id !== id)
           );
-          setRemoveSuccessMessage(`${name} removed successfully.`);
-          setRemoveErrorMessage("");
+          setNotification({ message: `${name} removed successfully.`, type: "success" });
         })
         .catch((error) => {
           console.error("Error deleting contact:", error);
-          setRemoveSuccessMessage("");
-          setRemoveErrorMessage(`Error deleting '${name}' contact. Please refresh the page and try again.`);
+          setNotification({ message: `Error deleting '${name}' contact. Please refresh the page and try again.`, type: "error" });
         });
     }
   };
 
   return (
     <div>
-      {removeSuccessMessage && (
-        <div style={{ color: "green" }}>{removeSuccessMessage}</div>
-      )}
-      {removeErrorMessage && (
-        <div style={{ color: "red" }}>{removeErrorMessage}</div>
-      )}
+      <Notification message={notification.message} type={notification.type} /> {/* Display notification */}
       <ul>
         {filteredPersons.map((person) => (
           <li key={person.id}>
