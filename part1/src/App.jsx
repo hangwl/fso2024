@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import SearchBar from "./components/SearchBar";
 import countryService from "./services/countryService";
+import getWeatherData from "./services/weatherService";
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -46,6 +47,15 @@ const App = () => {
     try {
       const countryDetails = await countryService.getCountryByName(name);
       setSelectedCountry(countryDetails);
+      const weatherData = await getWeatherData(
+        countryDetails.capitalInfo.latlng[0],
+        countryDetails.capitalInfo.latlng[1]
+      );
+      setSelectedCountry((prev) => ({
+        ...prev,
+        weather: weatherData.weather[0].description, // Assuming you want to display weather description
+        temperature: weatherData.main.temp, // Temperature in Kelvin
+      }));
     } catch (error) {
       console.error("Error fetching country details:", error);
       setSelectedCountry(null);
@@ -56,6 +66,15 @@ const App = () => {
     try {
       const countryData = await countryService.getCountryByName(countryName);
       setSelectedCountry(countryData);
+      const weatherData = await getWeatherData(
+        countryData.capitalInfo.latlng[0],
+        countryData.capitalInfo.latlng[1]
+      );
+      setSelectedCountry((prev) => ({
+        ...prev,
+        weather: weatherData.weather[0].description, // Assuming you want to display weather description
+        temperature: weatherData.main.temp, // Temperature in Kelvin
+      }));
     } catch (error) {
       console.error("Error fetching country data:", error);
     }
@@ -70,6 +89,10 @@ const App = () => {
           <h2>{selectedCountry.name.common}</h2>
           <p>Capital: {selectedCountry.capital[0]}</p>
           <p>Area: {selectedCountry.area}</p>
+          <p>Latitude: {selectedCountry.capitalInfo.latlng[0]}</p>
+          <p>Longitude: {selectedCountry.capitalInfo.latlng[1]}</p>
+          {selectedCountry.weather && <p>Weather: {selectedCountry.weather}</p>}
+          {selectedCountry.temperature && <p>Temperature: {selectedCountry.temperature} K</p>}
           <p>
             <b>Languages</b>
           </p>
