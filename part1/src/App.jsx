@@ -4,6 +4,7 @@ import ContactForm from "./components/ContactForm";
 import Notification from "./components/Notification";
 import ContactList from "./components/ContactList";
 import phonebookService from "./services/phonebookService";
+import useTimeout from "./hooks/useTimeout";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -18,32 +19,17 @@ const App = () => {
     });
   }, []);
 
+  const { startTimeout, stopTimeout } = useTimeout(() => {
+    setNotification({ message: "", type: "" });
+  }, 5000);
+
   useEffect(() => {
-    let timeoutId = null;
-    let secondsLeft = 5;
-
     if (notification.message !== "") {
-      timeoutId = setTimeout(() => {
-        setNotification({ message: "", type: "" });
-      }, 5000);
-
-      const intervalId = setInterval(() => {
-        console.log(`Timeout ${intervalId}: ${secondsLeft} seconds left`);
-        secondsLeft--;
-
-        if (secondsLeft === 0) {
-          clearInterval(intervalId);
-        }
-      }, 1000);
-
-      return () => {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-        clearInterval(intervalId);
-      };
+      startTimeout();
+    } else {
+      stopTimeout();
     }
-  }, [notification]);
+  }, [notification, startTimeout, stopTimeout]);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
