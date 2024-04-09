@@ -30,9 +30,13 @@ const App = () => {
         );
         setFilteredCountryNames(filteredNames);
         if (filteredNames.length === 1) {
-          fetchCountryDetails(filteredNames[0]);
-        } else {
-          setSelectedCountry(null);
+          if (selectedCountry === null) {
+            fetchCountryDetails(filteredNames[0]);
+          } else {
+            if (selectedCountry.name.common !== filteredNames[0]) {
+              fetchCountryDetails(filteredNames[0]);
+            }
+          }
         }
       } else {
         setFilteredCountryNames(countryNames);
@@ -53,8 +57,8 @@ const App = () => {
       );
       setSelectedCountry((prev) => ({
         ...prev,
-        weather: weatherData.weather[0].description, // Assuming you want to display weather description
-        temperature: weatherData.main.temp, // Temperature in Kelvin
+        weather: weatherData.weather[0].description, 
+        temperature: weatherData.main.temp,
       }));
     } catch (error) {
       console.error("Error fetching country details:", error);
@@ -72,8 +76,8 @@ const App = () => {
       );
       setSelectedCountry((prev) => ({
         ...prev,
-        weather: weatherData.weather[0].description, // Assuming you want to display weather description
-        temperature: weatherData.main.temp, // Temperature in Kelvin
+        weather: weatherData.weather[0].description,
+        temperature: weatherData.main.temp,
       }));
     } catch (error) {
       console.error("Error fetching country data:", error);
@@ -92,7 +96,9 @@ const App = () => {
           <p>Latitude: {selectedCountry.capitalInfo.latlng[0]}</p>
           <p>Longitude: {selectedCountry.capitalInfo.latlng[1]}</p>
           {selectedCountry.weather && <p>Weather: {selectedCountry.weather}</p>}
-          {selectedCountry.temperature && <p>Temperature: {selectedCountry.temperature} K</p>}
+          {selectedCountry.temperature && (
+            <p>Temperature: {selectedCountry.temperature} K</p>
+          )}
           <p>
             <b>Languages</b>
           </p>
