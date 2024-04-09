@@ -45,7 +45,7 @@ const App = () => {
     };
 
     handleSearch();
-  }, [searchTerm, countryNames]);
+  }, [searchTerm, countryNames, selectedCountry]);
 
   const fetchCountryDetails = async (name) => {
     try {
