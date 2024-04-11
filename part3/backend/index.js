@@ -41,6 +41,19 @@ app.get('/api/notes/:id', (request, response) => {
     }
 })
 
+app.put('/api/notes/:id', (request, response) => {
+    const id = Number(request.params.id);
+    const updatedNote = request.body;
+
+    const index = notes.findIndex(note => note.id === id);
+    if (index !== -1) {
+        notes[index] = { ...notes[index], ...updatedNote };
+        response.json(notes[index]);
+    } else {
+        response.status(404).json({ error: 'Note not found' });
+    }
+});
+
 app.delete('/api/notes/:id', (request, response) => {
     const id = Number(request.params.id)
     notes = notes.filter(note => note.id !== id)
