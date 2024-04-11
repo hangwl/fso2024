@@ -1,7 +1,13 @@
 const express = require('express');
+const morgan = require('morgan');
 const app = express();
 
 app.use(express.json());
+app.use(
+    morgan(':method :url :status :res[content-length] - :response-time ms :body')
+);
+
+morgan.token('body', (req) => JSON.stringify(req.body));
 
 let persons = [
     {
@@ -68,6 +74,13 @@ app.post('/api/persons', (request, response) => {
         });
     }
 
+    const existingPerson = persons.find(person => person.name === body.name);
+    if (existingPerson) {
+        return response.status(409).json({
+            error: "Name already exists in phonebook"
+        })
+    }
+
     const person = {
         name: body.name,
         number: body.number,
@@ -77,6 +90,16 @@ app.post('/api/persons', (request, response) => {
     persons = persons.concat(person);
 
     response.status(201).json(person);
+});
+
+app.get('/info', (request, response) => {
+    const currentTime = new Date();
+    const info = `Phonebook has info for ${persons.length} people.<br>${currentTime.toString()}`;
+    response.send(info);
+});
+
+app.use((req, res, next) => {
+    res.status(404).send('404 - Not Found');
 });
 
 const PORT = 3001;
