@@ -1,5 +1,8 @@
 start-dev.ps1
+<<<<<<<< HEAD:phonebook/frontend/.gitignore
 node_modules
+========
+>>>>>>>> notes:.gitignore
 
 # Logs
 logs
