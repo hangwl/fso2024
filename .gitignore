@@ -1,3 +1,6 @@
+start-dev.ps1
+node_modules
+
 # Logs
 logs
 *.log
@@ -22,6 +25,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-# Env-keys
-start-dev.ps1
