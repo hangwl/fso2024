@@ -24,4 +24,5 @@ dist-ssr
 *.sw?
 
 # Env keys
+.env
 start-dev.ps1
